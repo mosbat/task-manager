@@ -6,6 +6,8 @@
         /* Your CSS styles here */
 
 
+
+
     </style>
 </head>
 <body>
@@ -31,6 +33,9 @@
     </li>
 </ul>
 
+<button id="deleteDoneTasksButton">Delete Done Tasks</button>
+<button id="deleteAllTasksButton">Delete All Tasks</button>
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
 $(document).ready(function () {
@@ -38,29 +43,35 @@ $(document).ready(function () {
     showOnlyDoneTasks();
   });
 
-          $('.editTask').click(function() {
-            var taskElement = $(this).closest('.task');
-            var taskId = $(this).data('taskid');
-            var taskName = taskElement.find('span').text(); // Get the current task name
+  $('#deleteDoneTasksButton').click(function () {
+    deleteDoneTasks();
+  });
 
-            var newTaskName = prompt('Enter the new task name:', taskName);
-            if (newTaskName !== null) {
-                $.post('/updateTaskName/' + taskId + '/' + newTaskName, function() {
-                    // Update the task name on the UI
-                    taskElement.find('span').text(newTaskName);
-                });
-            }
-        });
+  $('#deleteAllTasksButton').click(function () {
+    deleteAllTasks();
+  });
 
-    $('#showAllButton').click(function () {
+  $('.editTask').click(function () {
+    var taskElement = $(this).closest('.task');
+    var taskId = $(this).data('taskid');
+    var taskName = taskElement.find('span').text(); // Get the current task name
+
+    var newTaskName = prompt('Enter the new task name:', taskName);
+    if (newTaskName !== null) {
+      $.post('/updateTaskName/' + taskId + '/' + newTaskName, function () {
+        // Update the task name on the UI
+        taskElement.find('span').text(newTaskName);
+      });
+    }
+  });
+
+  $('#showAllButton').click(function () {
     showOnlyAllTasks();
   });
 
-
-    $('#showUndoneButton').click(function () {
+  $('#showUndoneButton').click(function () {
     showUndoneTasks();
   });
-
 
   $('.toggleDone').change(function () {
     var taskId = $(this).data('taskid');
@@ -89,24 +100,22 @@ $(document).ready(function () {
     });
   }
 
-
-
-    function showUndoneTasks() {
+  function showUndoneTasks() {
     $('.task').each(function () {
       var taskElement = $(this);
       var isNotDone = taskElement.hasClass('done');
 
       if (!isNotDone) {
         taskElement.show();
-      }else{
-              taskElement.hide();
+      } else {
+        taskElement.hide();
       }
     });
   }
 
-    function showOnlyAllTasks() {
+  function showOnlyAllTasks() {
     $('.task').each(function () {
-        $(this).show();
+      $(this).show();
     });
   }
 
@@ -114,12 +123,34 @@ $(document).ready(function () {
     var taskId = $(this).data('taskid');
     $.post('/removeTask/' + taskId);
     $(this).closest('li').remove();
+
   });
 
-  // ... Other parts of your code ...
+  function deleteDoneTasks() {
+    $('.task').each(function () {
+      var isDone = $(this).hasClass('done');
+
+      if (isDone) {
+        var taskId =  $(this).find('.toggleDone').data('taskid');
+        $.post('/removeTask/' + taskId);
+        $(this).closest('li').remove();
+
+      }
+    });
+
+  }
+
+  function deleteAllTasks() {
+    $('.task').each(function () {
+      var taskId =  $(this).find('.toggleDone').data('taskid');
+      $.post('/removeTask/' + taskId);
+      $(this).closest('li').remove();
+
+    });
+
+  }
+
 });
-
-
 
 </script>
 </body>
