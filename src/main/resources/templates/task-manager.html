@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Task Manager</title>
+    <style>
+        /* Your CSS styles here */
+
+
+    </style>
+</head>
+<body>
+<h1>Task Manager</h1>
+
+<form th:action="@{/addTask}" method="post">
+    <input type="text" name="newTask" placeholder="Add a new task"/>
+    <button type="submit">Add Task</button>
+</form>
+
+<hr/>
+
+<button id="showDoneButton">Show Done Tasks</button>
+<button id="showAllButton">Show All Tasks</button>
+<button id="showUndoneButton">Show Undone Tasks</button>
+
+<ul class="task-list">
+    <li th:each="task : ${tasks}" th:class="${task.done} ? 'task done' : 'task'">
+        <input type="checkbox" th:checked="${task.done}" th:attr="data-taskid=${task.id}" class="toggleDone"/>
+        <span th:text="${task.description}"></span>
+        <button th:attr="data-taskid=${task.id}" class="editTask">Change</button>
+        <button th:attr="data-taskid=${task.id}" class="removeTask">Remove</button>
+    </li>
+</ul>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function () {
+  $('#showDoneButton').click(function () {
+    showOnlyDoneTasks();
+  });
+
+          $('.editTask').click(function() {
+            var taskElement = $(this).closest('.task');
+            var taskId = $(this).data('taskid');
+            var taskName = taskElement.find('span').text(); // Get the current task name
+
+            var newTaskName = prompt('Enter the new task name:', taskName);
+            if (newTaskName !== null) {
+                $.post('/updateTaskName/' + taskId + '/' + newTaskName, function() {
+                    // Update the task name on the UI
+                    taskElement.find('span').text(newTaskName);
+                });
+            }
+        });
+
+    $('#showAllButton').click(function () {
+    showOnlyAllTasks();
+  });
+
+
+    $('#showUndoneButton').click(function () {
+    showUndoneTasks();
+  });
+
+
+  $('.toggleDone').change(function () {
+    var taskId = $(this).data('taskid');
+    var isDone = $(this).prop('checked');
+
+    $.post('/toggleDone/' + taskId + '?done=' + isDone, function () {
+      var taskElement = $('.toggleDone[data-taskid="' + taskId + '"]').closest(
+        '.task'
+      );
+      if (isDone) {
+        taskElement.addClass('done');
+      } else {
+        taskElement.removeClass('done');
+      }
+    });
+  });
+
+  function showOnlyDoneTasks() {
+    $('.task').each(function () {
+      var taskElement = $(this);
+      var isNotDone = taskElement.hasClass('done');
+
+      if (!isNotDone) {
+        taskElement.hide();
+      }
+    });
+  }
+
+
+
+    function showUndoneTasks() {
+    $('.task').each(function () {
+      var taskElement = $(this);
+      var isNotDone = taskElement.hasClass('done');
+
+      if (!isNotDone) {
+        taskElement.show();
+      }else{
+              taskElement.hide();
+      }
+    });
+  }
+
+    function showOnlyAllTasks() {
+    $('.task').each(function () {
+        $(this).show();
+    });
+  }
+
+  $('.removeTask').click(function () {
+    var taskId = $(this).data('taskid');
+    $.post('/removeTask/' + taskId);
+    $(this).closest('li').remove();
+  });
+
+  // ... Other parts of your code ...
+});
+
+
+
+</script>
+</body>
+</html>
